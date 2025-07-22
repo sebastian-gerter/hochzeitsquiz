@@ -2,45 +2,245 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Irland Zuordnungsspiel</title>
+    <title>Irland Reise-Quiz</title>
     <style>
         body {
             text-align: center;
             background: #f4f4f4;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
         }
 
         #game-container {
             position: relative;
-            width: 800px;
+            width: 1200px;
             margin: 0 auto;
         }
 
         #map-container {
             position: relative;
             display: inline-block;
+            margin: 20px 0;
         }
 
         #map-container img {
             width: 600px;
         }
 
-        .marker {
+        .station {
             position: absolute;
-            width: 40px; height: 40px;
-            background-color: rgba(255, 0, 0, 0.5);
+            width: 20px;
+            height: 20px;
+            background-color: #007bff;
             border-radius: 50%;
-            border: 2px dashed #fff;
+            border: 3px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .station:hover {
+            transform: scale(1.2);
+            background-color: #0056b3;
+        }
+
+        .station.completed {
+            background-color: #28a745;
+        }
+
+        #images-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 10px;
         }
 
         .draggable {
-            width: 80px;
-            margin: 10px;
+            width: 60px;
+            height: 60px;
+            margin: 5px;
             cursor: grab;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            object-fit: cover;
+            transition: opacity 0.3s;
         }
 
-        #images-top, #images-bottom {
-            margin: 10px;
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .draggable.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Popup Styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .popup h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .popup-text {
+            margin: 15px 0;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .image-drop-zone {
+            width: 150px;
+            height: 150px;
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .image-drop-zone.dragover {
+            border-color: #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+
+        .image-drop-zone img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .popup-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .popup-images {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .popup-images h4 {
+            width: 100%;
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .popup-draggable {
+            width: 50px;
+            height: 50px;
+            margin: 3px;
+            cursor: grab;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            object-fit: cover;
+            transition: opacity 0.3s, transform 0.2s;
+        }
+
+        .popup-draggable:hover {
+            transform: scale(1.05);
+        }
+
+        .popup-draggable:active {
+            cursor: grabbing;
+        }
+
+        .popup-draggable.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-close {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-close:hover {
+            background-color: #5a6268;
+        }
+
+        #check-results {
+            margin: 20px 0;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #check-results:hover {
+            background-color: #0056b3;
+        }
+
+        #results {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        #results.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        #results.partial {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
 
     </style>
@@ -49,56 +249,293 @@
 
     <h1>Irland Zuordnungsspiel</h1>
 
-    <div id="images-top">
-        <img src="ireland-map.png" id="dublin" class="draggable" draggable="true">
-        <img src="ireland-map.png" id="galway" class="draggable" draggable="true">
-        <img src="ireland-map.png" id="cork" class="draggable" draggable="true">
-        <!-- Weitere Bilder hier -->
+    <div id="images-container">
+        <!-- 40+ Bilder rund um die Karte -->
+        <img src="ireland-map.png" id="img1" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img2" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img3" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img4" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img5" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img6" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img7" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img8" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img9" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img10" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img11" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img12" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img13" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img14" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img15" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img16" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img17" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img18" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img19" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img20" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img21" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img22" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img23" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img24" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img25" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img26" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img27" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img28" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img29" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img30" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img31" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img32" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img33" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img34" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img35" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img36" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img37" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img38" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img39" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img40" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img41" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img42" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img43" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img44" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="img45" class="draggable" draggable="true">
     </div>
 
     <div id="game-container">
         <div id="map-container">
             <img src="ireland-map.png" alt="Irland">
 
-            <!-- Drop-Zonen (Marker) -->
-            <div class="marker" style="top: 50px; left: 300px;" data-target="dublin"></div>
-            <div class="marker" style="top: 200px; left: 250px;" data-target="galway"></div>
-            <div class="marker" style="top: 300px; left: 350px;" data-target="cork"></div>
-            <!-- Weitere Marker hier -->
+            <!-- 15 Reisestationen -->
+            <div class="station" style="top: 60px; left: 320px;" data-station="1"></div>
+            <div class="station" style="top: 90px; left: 280px;" data-station="2"></div>
+            <div class="station" style="top: 120px; left: 350px;" data-station="3"></div>
+            <div class="station" style="top: 150px; left: 240px;" data-station="4"></div>
+            <div class="station" style="top: 180px; left: 380px;" data-station="5"></div>
+            <div class="station" style="top: 210px; left: 200px;" data-station="6"></div>
+            <div class="station" style="top: 240px; left: 420px;" data-station="7"></div>
+            <div class="station" style="top: 270px; left: 180px;" data-station="8"></div>
+            <div class="station" style="top: 300px; left: 360px;" data-station="9"></div>
+            <div class="station" style="top: 330px; left: 220px;" data-station="10"></div>
+            <div class="station" style="top: 360px; left: 400px;" data-station="11"></div>
+            <div class="station" style="top: 390px; left: 160px;" data-station="12"></div>
+            <div class="station" style="top: 420px; left: 340px;" data-station="13"></div>
+            <div class="station" style="top: 450px; left: 260px;" data-station="14"></div>
+            <div class="station" style="top: 480px; left: 380px;" data-station="15"></div>
         </div>
     </div>
 
-    <div id="images-bottom">
-        <!-- Weitere Bilder könnten auch unten sein -->
+    <button id="check-results">Ergebnisse prüfen</button>
+    <div id="results"></div>
+
+    <!-- Popup für Stationen -->
+    <div class="popup-overlay" id="popup-overlay">
+        <div class="popup">
+            <h3 id="popup-title">Station</h3>
+            <div class="popup-text" id="popup-text">
+                Hier kommt der Text der Station...
+            </div>
+            
+            <div class="image-drop-zone" id="image-drop-zone">
+                Bild hier hinziehen
+            </div>
+            
+            <div class="popup-images" id="popup-images">
+                <h4>Verfügbare Bilder:</h4>
+                <!-- Bilder werden hier dynamisch eingefügt -->
+            </div>
+            
+            <div class="popup-buttons">
+                <button class="btn btn-close" onclick="closePopup()">Schließen</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Drag & Drop Setup
-        const draggables = document.querySelectorAll('.draggable');
-        const markers = document.querySelectorAll('.marker');
+        // Game state
+        let currentStation = null;
+        let assignments = {}; // station -> image id
+        let usedImages = new Set();
 
-        draggables.forEach(img => {
-            img.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData("text", e.target.id);
+        // Station data (you can add text and correct answers later)
+        const stationData = {
+            1: { title: "Station 1", text: "Beschreibung für Station 1...", correctImage: "img1" },
+            2: { title: "Station 2", text: "Beschreibung für Station 2...", correctImage: "img2" },
+            3: { title: "Station 3", text: "Beschreibung für Station 3...", correctImage: "img3" },
+            4: { title: "Station 4", text: "Beschreibung für Station 4...", correctImage: "img4" },
+            5: { title: "Station 5", text: "Beschreibung für Station 5...", correctImage: "img5" },
+            6: { title: "Station 6", text: "Beschreibung für Station 6...", correctImage: "img6" },
+            7: { title: "Station 7", text: "Beschreibung für Station 7...", correctImage: "img7" },
+            8: { title: "Station 8", text: "Beschreibung für Station 8...", correctImage: "img8" },
+            9: { title: "Station 9", text: "Beschreibung für Station 9...", correctImage: "img9" },
+            10: { title: "Station 10", text: "Beschreibung für Station 10...", correctImage: "img10" },
+            11: { title: "Station 11", text: "Beschreibung für Station 11...", correctImage: "img11" },
+            12: { title: "Station 12", text: "Beschreibung für Station 12...", correctImage: "img12" },
+            13: { title: "Station 13", text: "Beschreibung für Station 13...", correctImage: "img13" },
+            14: { title: "Station 14", text: "Beschreibung für Station 14...", correctImage: "img14" },
+            15: { title: "Station 15", text: "Beschreibung für Station 15...", correctImage: "img15" }
+        };
+
+        // Station click handlers
+        document.querySelectorAll('.station').forEach(station => {
+            station.addEventListener('click', () => {
+                const stationNumber = station.dataset.station;
+                openStationPopup(stationNumber);
             });
         });
 
-        markers.forEach(marker => {
-            marker.addEventListener('dragover', (e) => e.preventDefault());
+        // Open station popup
+        function openStationPopup(stationNumber) {
+            currentStation = stationNumber;
+            const data = stationData[stationNumber];
+            
+            document.getElementById('popup-title').textContent = data.title;
+            document.getElementById('popup-text').textContent = data.text;
+            
+            // Show current assignment if exists
+            const dropZone = document.getElementById('image-drop-zone');
+            if (assignments[stationNumber]) {
+                const img = document.createElement('img');
+                img.src = document.getElementById(assignments[stationNumber]).src;
+                dropZone.innerHTML = '';
+                dropZone.appendChild(img);
+            } else {
+                dropZone.innerHTML = 'Bild hier hinziehen';
+            }
+            
+            // Load available images into popup
+            loadPopupImages();
+            
+            document.getElementById('popup-overlay').style.display = 'block';
+        }
 
-            marker.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const draggedId = e.dataTransfer.getData("text");
-
-                if (marker.dataset.target === draggedId) {
-                    marker.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                    const img = document.getElementById(draggedId);
-                    img.style.display = "none"; // Bild verschwindet nach Zuordnung
-                } else {
-                    marker.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-                    alert("Das war nicht der richtige Ort!");
+        // Load available images into popup
+        function loadPopupImages() {
+            const popupImagesContainer = document.getElementById('popup-images');
+            
+            // Clear existing images (except title)
+            const title = popupImagesContainer.querySelector('h4');
+            popupImagesContainer.innerHTML = '';
+            popupImagesContainer.appendChild(title);
+            
+            // Add all images to popup
+            document.querySelectorAll('.draggable').forEach(img => {
+                const popupImg = img.cloneNode(true);
+                popupImg.classList.remove('draggable');
+                popupImg.classList.add('popup-draggable');
+                
+                // Copy used state
+                if (img.classList.contains('used')) {
+                    popupImg.classList.add('used');
+                    popupImg.draggable = false;
                 }
+                
+                popupImagesContainer.appendChild(popupImg);
             });
+            
+            // Setup drag handlers for popup images
+            setupPopupImageDrag();
+        }
+
+        // Close popup
+        function closePopup() {
+            document.getElementById('popup-overlay').style.display = 'none';
+            currentStation = null;
+        }
+
+        // Drag & Drop for images (original images are now just for display)
+        document.querySelectorAll('.draggable').forEach(img => {
+            img.addEventListener('dragstart', (e) => {
+                e.preventDefault(); // Disable dragging original images
+            });
+        });
+
+        // Setup drag handlers for popup images
+        function setupPopupImageDrag() {
+            document.querySelectorAll('.popup-draggable').forEach(img => {
+                img.addEventListener('dragstart', (e) => {
+                    if (img.classList.contains('used')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    e.dataTransfer.setData("text", img.id);
+                });
+            });
+        }
+
+        // Setup drop zone handlers
+        function setupDropZone() {
+            const dropZone = document.getElementById('image-drop-zone');
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+                
+                if (!currentStation) return;
+                
+                const draggedId = e.dataTransfer.getData("text");
+                const draggedImg = document.getElementById(draggedId);
+                
+                if (!draggedImg || draggedImg.classList.contains('used')) return;
+                
+                // Remove previous assignment for this station
+                if (assignments[currentStation]) {
+                    const oldImg = document.getElementById(assignments[currentStation]);
+                    oldImg.classList.remove('used');
+                    usedImages.delete(assignments[currentStation]);
+                }
+                
+                // Set new assignment
+                assignments[currentStation] = draggedId;
+                draggedImg.classList.add('used');
+                usedImages.add(draggedId);
+                
+                // Show image in drop zone
+                const img = document.createElement('img');
+                img.src = draggedImg.src;
+                dropZone.innerHTML = '';
+                dropZone.appendChild(img);
+                
+                // Mark station as completed
+                const stationElement = document.querySelector(`[data-station="${currentStation}"]`);
+                stationElement.classList.add('completed');
+                
+                // Refresh popup images to show updated used state
+                loadPopupImages();
+            });
+        }
+
+        // Initialize drop zone
+        setupDropZone();
+
+        // Check results
+        document.getElementById('check-results').addEventListener('click', () => {
+            let correct = 0;
+            let total = Object.keys(stationData).length;
+            
+            for (let station in assignments) {
+                if (stationData[station].correctImage === assignments[station]) {
+                    correct++;
+                }
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            if (correct === total) {
+                resultsDiv.className = 'success';
+                resultsDiv.textContent = `Perfekt! Alle ${total} Zuordnungen sind korrekt!`;
+            } else {
+                resultsDiv.className = 'partial';
+                resultsDiv.textContent = `${correct} von ${total} Zuordnungen sind korrekt.`;
+            }
         });
     </script>
 

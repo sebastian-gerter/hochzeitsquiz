@@ -2,13 +2,18 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Irland Karte - Marker klicken</title>
+    <title>Irland Zuordnungsspiel</title>
     <style>
         body {
             text-align: center;
             background: #f4f4f4;
             font-family: Arial, sans-serif;
-            padding: 20px;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            margin: 0 auto;
         }
 
         #map-container {
@@ -16,40 +21,83 @@
             display: inline-block;
         }
 
-        .marker {
-            position: absolute;
-            width: 20px; height: 20px;
-            background-color: red;
-            border-radius: 50%;
-            border: 2px solid white;
-            cursor: pointer;
-            transition: background-color 0.3s;
+        #map-container img {
+            width: 600px;
         }
 
-        .marker.clicked {
-            background-color: green;
+        .marker {
+            position: absolute;
+            width: 40px; height: 40px;
+            background-color: rgba(255, 0, 0, 0.5);
+            border-radius: 50%;
+            border: 2px dashed #fff;
         }
+
+        .draggable {
+            width: 80px;
+            margin: 10px;
+            cursor: grab;
+        }
+
+        #images-top, #images-bottom {
+            margin: 10px;
+        }
+
     </style>
 </head>
 <body>
 
-    <h1>Irland Karte - Klickbare Punkte</h1>
+    <h1>Irland Zuordnungsspiel</h1>
 
-    <div id="map-container">
-        <img src="ireland-map.png" alt="Irland Karte" width="600">
+    <div id="images-top">
+        <img src="ireland-map.png" id="dublin" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="galway" class="draggable" draggable="true">
+        <img src="ireland-map.png" id="cork" class="draggable" draggable="true">
+        <!-- Weitere Bilder hier -->
+    </div>
 
-        <!-- Beispielhafte Punkte -->
-        <div class="marker" style="top: 50px; left: 300px;"></div> <!-- Dublin -->
-        <div class="marker" style="top: 200px; left: 250px;"></div> <!-- Galway -->
-        <div class="marker" style="top: 300px; left: 350px;"></div> <!-- Cork -->
-        <!-- Weitere Punkte kannst du so ergänzen -->
+    <div id="game-container">
+        <div id="map-container">
+            <img src="ireland-map.png" alt="Irland">
+
+            <!-- Drop-Zonen (Marker) -->
+            <div class="marker" style="top: 50px; left: 300px;" data-target="dublin"></div>
+            <div class="marker" style="top: 200px; left: 250px;" data-target="galway"></div>
+            <div class="marker" style="top: 300px; left: 350px;" data-target="cork"></div>
+            <!-- Weitere Marker hier -->
+        </div>
+    </div>
+
+    <div id="images-bottom">
+        <!-- Weitere Bilder könnten auch unten sein -->
     </div>
 
     <script>
+        // Drag & Drop Setup
+        const draggables = document.querySelectorAll('.draggable');
         const markers = document.querySelectorAll('.marker');
+
+        draggables.forEach(img => {
+            img.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData("text", e.target.id);
+            });
+        });
+
         markers.forEach(marker => {
-            marker.addEventListener('click', () => {
-                marker.classList.toggle('clicked');
+            marker.addEventListener('dragover', (e) => e.preventDefault());
+
+            marker.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData("text");
+
+                if (marker.dataset.target === draggedId) {
+                    marker.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                    const img = document.getElementById(draggedId);
+                    img.style.display = "none"; // Bild verschwindet nach Zuordnung
+                } else {
+                    marker.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
+                    alert("Das war nicht der richtige Ort!");
+                }
             });
         });
     </script>

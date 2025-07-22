@@ -2,93 +2,56 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Hochzeitsquiz</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>Irland Karte - Marker klicken</title>
     <style>
         body {
+            text-align: center;
+            background: #f4f4f4;
             font-family: Arial, sans-serif;
-            text-align: center;
-            background: #fff8f0;
-            padding: 50px;
+            padding: 20px;
         }
-        h1 {
-            color: #d17f9a;
+
+        #map-container {
+            position: relative;
+            display: inline-block;
         }
-        input {
-            width: 300px;
-            padding: 10px;
-            font-size: 18px;
-            text-align: center;
-            letter-spacing: 3px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 30px;
-            font-size: 18px;
-            background: #d17f9a;
-            color: white;
-            border: none;
-            border-radius: 8px;
+
+        .marker {
+            position: absolute;
+            width: 20px; height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            border: 2px solid white;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
-        #message {
-            margin-top: 30px;
-            font-size: 24px;
+
+        .marker.clicked {
+            background-color: green;
         }
     </style>
 </head>
 <body>
 
-    <h1>Hochzeitsquiz</h1>
-    <p>Gib den 15-stelligen Zahlencode ein:</p>
+    <h1>Irland Karte - Klickbare Punkte</h1>
 
-    <input id="codeInput" type="text" maxlength="45" placeholder="z.B. 12 34 56 78 90 12 34 56 78 90 12 34 56 78 90">
-    <br>
-    <button onclick="checkCode()">Prüfen</button>
+    <div id="map-container">
+        <img src="ireland-map.png" alt="Irland Karte" width="600">
 
-    <div id="message"></div>
+        <!-- Beispielhafte Punkte -->
+        <div class="marker" style="top: 50px; left: 300px;"></div> <!-- Dublin -->
+        <div class="marker" style="top: 200px; left: 250px;"></div> <!-- Galway -->
+        <div class="marker" style="top: 300px; left: 350px;"></div> <!-- Cork -->
+        <!-- Weitere Punkte kannst du so ergänzen -->
+    </div>
 
     <script>
-        // Richtiger Code als String (Beispiel: 12 34 56 78 90 12 34 56 78 90 12 34 56 78 90)
-        const correctCode = "123456789012345678901234567890";
-
-        function checkCode() {
-            const input = document.getElementById("codeInput").value.replace(/\D/g, '');
-            const messageDiv = document.getElementById("message");
-
-            if (input === correctCode) {
-                messageDiv.innerHTML = "🎉 Herzlichen Glückwunsch! Der Code ist richtig! 🎉";
-                confetti();
-            } else {
-                messageDiv.innerHTML = "Das war leider nicht richtig. Versucht es noch einmal!";
-            }
-        }
-
-        function confetti() {
-            const duration = 5 * 1000;
-            const end = Date.now() + duration;
-
-            (function frame() {
-                confettiLib({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
-                });
-                confettiLib({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            })();
-        }
-
-        const confettiLib = window.confetti;
+        const markers = document.querySelectorAll('.marker');
+        markers.forEach(marker => {
+            marker.addEventListener('click', () => {
+                marker.classList.toggle('clicked');
+            });
+        });
     </script>
 
 </body>
